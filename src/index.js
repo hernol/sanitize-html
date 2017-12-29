@@ -136,7 +136,7 @@ function sanitizeHtml(html, options, _recursing) {
   var skipText = false;
   var skipTextDepth = 0;
 
-  var parser = new htmlparser.Parser({
+  var parserFn = {
     onopentag: function(name, attribs) {
       if (skipText) {
         skipTextDepth++;
@@ -349,8 +349,34 @@ function sanitizeHtml(html, options, _recursing) {
       }
 
       result += "</" + name + ">";
+    },
+    oncloseconditionalcomment: function (value) {
+      if (value.length && value[0] == '[' && value[value.length-1] == ']') {
+          if (value.substring(1, value.length-1).trim().toLowerCase() == 'endif') {
+              result += '<!' + value + '-->';
+          }
+      }
+      return;
+    },
+    onopenconditionalcomment: function (value) {
+      if (value.length && value[0] == '[' && value[value.length-1] == ']') {
+          if (value.substring(1,3).toLowerCase() == 'if') {
+              var text = value.substring(3, value.length-1);
+              var regex = new RegExp('^([a-zA-Z0-9 ]+)$');
+              if (text.match(regex) != null) {
+                  result += '<!--' + value + '>';
+                  return;
+              }
+          }
+      }
+      return;
     }
-  }, options.parser);
+  };
+  if (options.parserMethods) {
+      parserFn = extend(parserFn, options.parserMethods);
+      options.parserMethods = null;
+  }
+  var parser = new htmlparser.Parser(parserFn, options.parser);
   parser.write(html);
   parser.end();
 
