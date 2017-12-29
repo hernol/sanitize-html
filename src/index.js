@@ -349,6 +349,29 @@ function sanitizeHtml(html, options, _recursing) {
       }
 
       result += "</" + name + ">";
+    },
+    options.parserMethods = {
+        oncloseconditionalcomment: function (value) {
+          if (value.length && value[0] == '[' && value[value.length-1] == ']') {
+              if (value.substring(1, value.length-1).trim().toLowerCase() == 'endif') {
+                  this.result += '<!' + value + '-->';
+              }
+          }
+          return;
+        },
+        onopenconditionalcomment: function (value) {
+          if (value.length && value[0] == '[' && value[value.length-1] == ']') {
+              if (value.substring(1,3).toLowerCase() == 'if') {
+                  var text = value.substring(3, value.length-1);
+                  var regex = new RegExp('^([a-zA-Z0-9 ]+)$');
+                  if (text.match(regex) != null) {
+                      this.result += '<!--' + value + '>';
+                      return;
+                  }
+              }
+          }
+          return;
+        }
     }
   };
   if (options.parserMethods) {
