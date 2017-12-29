@@ -351,6 +351,7 @@ function sanitizeHtml(html, options, _recursing) {
       result += "</" + name + ">";
     },
     oncloseconditionalcomment: function (value) {
+      console.log('oncloseconditionalcomment');
       if (value.length && value[0] == '[' && value[value.length-1] == ']') {
           if (value.substring(1, value.length-1).trim().toLowerCase() == 'endif') {
               result += '<!' + value + '-->';
@@ -359,6 +360,7 @@ function sanitizeHtml(html, options, _recursing) {
       return;
     },
     onopenconditionalcomment: function (value) {
+      console.log('onopenconditionalcomment');
       if (value.length && value[0] == '[' && value[value.length-1] == ']') {
           if (value.substring(1,3).toLowerCase() == 'if') {
               var text = value.substring(3, value.length-1);
